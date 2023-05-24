@@ -1695,9 +1695,9 @@ export default class MsgReader {
   }
 
   private fieldsDataDir(parserConfig: ParsingConfig, dirProperty: CFolder, rootFolder: CFolder, fields: FieldsData, subClass?: string) {
-    for (let subFolder of dirProperty.subFolders()) {
-      this.fieldsDataDirInner(parserConfig, subFolder, rootFolder, fields);
-    }
+    // for (let subFolder of dirProperty.subFolders()) {
+    //   this.fieldsDataDirInner(parserConfig, subFolder, rootFolder, fields);
+    // }
 
     for (let fileSet of dirProperty.fileNameSets()) {
       if (0) { }

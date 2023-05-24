@@ -1,5 +1,5 @@
 {
-  "name": "abdulghaffar349/msgreader",
+  "name": "msgreader",
   "version": "1.19.0-alpha.1",
   "description": "Outlook Item File (.msg) reader in JavaScript Npm Module",
   "main": "lib/index.js",

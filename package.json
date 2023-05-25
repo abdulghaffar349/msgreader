@@ -8,7 +8,6 @@
   "scripts": {
     "build": "tsc",
     "test": "npm run mocha test/ test2/",
-    "install": "npm run build",
     "prepare": "npm run build && npm run test",
     "mocha": "set NODE_ENV=test && mocha",
     "dr": "npm publish --dry-run"

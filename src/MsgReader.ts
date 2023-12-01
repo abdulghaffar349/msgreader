@@ -1235,6 +1235,7 @@ export interface FieldsData extends SomeOxProps, SomeParsedOxProps {
    * - And then invoke {@link MsgReader.getFileData}.
    */
   rawProps?: RawProp[];
+  'IOpenTypedFacet.SkypeSpaces_ConversationPost_Extension'?: string
 }
 
 /**
@@ -1515,6 +1516,9 @@ export default class MsgReader {
 
   private setDecodedFieldTo(parserConfig: ParsingConfig, fields: FieldsData, pair: FieldValuePair): void {
     const { key, keyType, value } = pair;
+    if (key === 'IOpenTypedFacet.SkypeSpaces_ConversationPost_Extension') { //mainContentTag
+      fields[key] = String(value)
+    }
     if (key !== undefined) {
       if (keyType === KeyType.root) {
         fields[key] = value;
@@ -1695,9 +1699,9 @@ export default class MsgReader {
   }
 
   private fieldsDataDir(parserConfig: ParsingConfig, dirProperty: CFolder, rootFolder: CFolder, fields: FieldsData, subClass?: string) {
-    // for (let subFolder of dirProperty.subFolders()) {
-    //   this.fieldsDataDirInner(parserConfig, subFolder, rootFolder, fields);
-    // }
+    for (let subFolder of dirProperty.subFolders()) {
+      this.fieldsDataDirInner(parserConfig, subFolder, rootFolder, fields);
+    }
 
     for (let fileSet of dirProperty.fileNameSets()) {
       if (0) { }
@@ -1774,7 +1778,8 @@ export default class MsgReader {
     const fields: FieldsData = {
       dataType: "msg",
       attachments: [],
-      recipients: []
+      recipients: [],
+      'IOpenTypedFacet.SkypeSpaces_ConversationPost_Extension': undefined
     };
     this.fieldsDataDir(parserConfig, this.reader.rootFolder(), this.reader.rootFolder(), fields, "root");
     return fields;

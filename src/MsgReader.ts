@@ -1139,7 +1139,8 @@ export interface SomeParsedOxProps {
 
 export interface FieldsData extends SomeOxProps, SomeParsedOxProps {
   dataType: null | "msg" | "attachment" | "recipient";
-
+  messageId?: any;
+  bodyPreview?: string;
   /**
    * The attachment file's contentLength.
    * 
@@ -1218,6 +1219,10 @@ export interface FieldsData extends SomeOxProps, SomeParsedOxProps {
    */
   recipients?: FieldsData[];
 
+  /**
+   * Shows the rowId or index of the recipient in the recipients table
+   */
+  rowId?: number
   /**
    * error is set on parse error.
    * 

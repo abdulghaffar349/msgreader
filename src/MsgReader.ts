@@ -1520,7 +1520,13 @@ export default class MsgReader {
   }
 
   private setDecodedFieldTo(parserConfig: ParsingConfig, fields: FieldsData, pair: FieldValuePair): void {
-    const { key, keyType, value } = pair;
+    let { key, keyType, value } = pair;
+    if (typeof value === 'string') {
+      const lastCharOfString = value.charAt(value.length - 1);
+      if (lastCharOfString === '\u0000') { // Somehow we are getting \u0000 that is null at the end of strings
+        value = value.slice(0, -1);
+      }
+    }
     if (key === 'IOpenTypedFacet.SkypeSpaces_ConversationPost_Extension') { //mainContentTag
       fields[key] = String(value)
     }

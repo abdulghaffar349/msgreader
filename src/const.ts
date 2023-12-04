@@ -86,6 +86,7 @@ export default {
         // '7ffe': 'attachmentHidden',
         // recipient specific
         // '0c15': 'recipType',
+        '3000': 'rowId',
         '3001': 'name',
         // '3002': 'addressType',
         '3003': 'email',

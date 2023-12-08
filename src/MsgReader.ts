@@ -67,16 +67,25 @@ export interface ParserConfig {
    * 
    */
   ansiEncoding?: string;
-  keyProps?: Map<string, string>; //'370d': 'attachLongPathname'
-  namedProps?: Map<string, string>; //IOpenTypedFacet.SkypeSpaces_ConversationPost_Extension => mainTagContent
+  /**
+   * Match the key by it address or hex value and then set it with its name in fields
+   * Suppose if we pass the hex 370d it will set the attachLongPathname in the attachment
+   */
+  includePropertyByHex?: Map<string, string>; //'370d': 'attachLongPathname'
+  /**
+   * Check the property key with name find from the MSG and set it with user defined name in the field
+   * Suppose if we find key named IOpenTypedFacet.SkypeSpaces_ConversationPost_Extension it can be set as mainTagContent
+   * in fields
+   */
+  includePropertyByName?: Map<string, string>; //IOpenTypedFacet.SkypeSpaces_ConversationPost_Extension => mainTagContent
 }
 
 interface ParsingConfig {
   propertyObserver: (fields: FieldsData, tag: number, raw: Uint8Array | null) => void;
   includeRawProps: boolean;
   ansiEncoding?: string;
-  keyProps?: Map<string, string>; //'370d': 'attachLongPathname'
-  namedProps?: Map<string, string>; //IOpenTypedFacet.SkypeSpaces_ConversationPost_Extension => mainTagContent
+  includePropertyByHex?: Map<string, string>; //'370d': 'attachLongPathname'
+  includePropertyByName?: Map<string, string>; //IOpenTypedFacet.SkypeSpaces_ConversationPost_Extension => mainTagContent
 }
 
 /**
@@ -1381,10 +1390,10 @@ export default class MsgReader {
     let key = CONST.MSG.FIELD.FULL_NAME_MAPPING[`${fieldClass}${fieldType}`]
       || CONST.MSG.FIELD.NAME_MAPPING[fieldClass];
     
-    if (!key && this.parserConfig?.keyProps) {
-      const namedKey = this.parserConfig.keyProps.get(fieldClass);
-      if (namedKey) {
-        key = namedKey
+    if (!key && this.parserConfig?.includePropertyByHex) {
+      const propertyName = this.parserConfig.includePropertyByHex.get(fieldClass);
+      if (propertyName) {
+        key = propertyName
       }
     }
     let keyType = KeyType.root;
@@ -1538,9 +1547,9 @@ export default class MsgReader {
       }
     }
     //Set custom raw props
-    if (parserConfig?.keyProps.has(key)) {
-      const keyProp = parserConfig.keyProps.get(key)
-      fields[keyProp] = value
+    if (parserConfig?.includePropertyByName.has(key)) {
+      const propertyName = parserConfig.includePropertyByName.get(key)
+      fields[propertyName] = value
     }
   
     if (key !== undefined) {
@@ -1831,8 +1840,8 @@ export default class MsgReader {
           propertyObserver: (this.parserConfig?.propertyObserver) || (() => { }),
           includeRawProps: this.parserConfig?.includeRawProps ? true : false,
           ansiEncoding: emptyToNull(this.parserConfig?.ansiEncoding),
-          namedProps: (this.parserConfig?.namedProps) || undefined,
-          keyProps: (this.parserConfig?.keyProps) || undefined
+          includePropertyByName: (this.parserConfig?.includePropertyByName) || undefined,
+          includePropertyByHex: (this.parserConfig?.includePropertyByHex) || undefined
         }
       );
     }

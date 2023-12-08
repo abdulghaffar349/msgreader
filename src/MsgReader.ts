@@ -67,12 +67,16 @@ export interface ParserConfig {
    * 
    */
   ansiEncoding?: string;
+  keyProps?: Map<string, string>; //'370d': 'attachLongPathname'
+  namedProps?: Map<string, string>; //IOpenTypedFacet.SkypeSpaces_ConversationPost_Extension => mainTagContent
 }
 
 interface ParsingConfig {
   propertyObserver: (fields: FieldsData, tag: number, raw: Uint8Array | null) => void;
   includeRawProps: boolean;
   ansiEncoding?: string;
+  keyProps?: Map<string, string>; //'370d': 'attachLongPathname'
+  namedProps?: Map<string, string>; //IOpenTypedFacet.SkypeSpaces_ConversationPost_Extension => mainTagContent
 }
 
 /**
@@ -1240,7 +1244,6 @@ export interface FieldsData extends SomeOxProps, SomeParsedOxProps {
    * - And then invoke {@link MsgReader.getFileData}.
    */
   rawProps?: RawProp[];
-  'IOpenTypedFacet.SkypeSpaces_ConversationPost_Extension'?: string
 }
 
 /**
@@ -1377,6 +1380,13 @@ export default class MsgReader {
 
     let key = CONST.MSG.FIELD.FULL_NAME_MAPPING[`${fieldClass}${fieldType}`]
       || CONST.MSG.FIELD.NAME_MAPPING[fieldClass];
+    
+    if (!key && this.parserConfig?.keyProps) {
+      const namedKey = this.parserConfig.keyProps.get(fieldClass);
+      if (namedKey) {
+        key = namedKey
+      }
+    }
     let keyType = KeyType.root;
 
     let propertySet: string = undefined;
@@ -1527,9 +1537,12 @@ export default class MsgReader {
         value = value.slice(0, -1);
       }
     }
-    if (key === 'IOpenTypedFacet.SkypeSpaces_ConversationPost_Extension') { //mainContentTag
-      fields[key] = String(value)
+    //Set custom raw props
+    if (parserConfig?.keyProps.has(key)) {
+      const keyProp = parserConfig.keyProps.get(key)
+      fields[keyProp] = value
     }
+  
     if (key !== undefined) {
       if (keyType === KeyType.root) {
         fields[key] = value;
@@ -1789,8 +1802,7 @@ export default class MsgReader {
     const fields: FieldsData = {
       dataType: "msg",
       attachments: [],
-      recipients: [],
-      'IOpenTypedFacet.SkypeSpaces_ConversationPost_Extension': undefined
+      recipients: []    
     };
     this.fieldsDataDir(parserConfig, this.reader.rootFolder(), this.reader.rootFolder(), fields, "root");
     return fields;
@@ -1819,6 +1831,8 @@ export default class MsgReader {
           propertyObserver: (this.parserConfig?.propertyObserver) || (() => { }),
           includeRawProps: this.parserConfig?.includeRawProps ? true : false,
           ansiEncoding: emptyToNull(this.parserConfig?.ansiEncoding),
+          namedProps: (this.parserConfig?.namedProps) || undefined,
+          keyProps: (this.parserConfig?.keyProps) || undefined
         }
       );
     }

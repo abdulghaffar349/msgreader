@@ -58,7 +58,6 @@ export default {
         '0037': 'subject',
         '0c1a': 'senderName',
         '1035': 'messageId',
-        '3FD9': 'bodyPreview',
         // '0c1e': 'senderAddressType',
         // '0c1f': 'senderEmail',
         '5d01': 'senderSmtpAddress',

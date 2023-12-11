@@ -1390,7 +1390,7 @@ export default class MsgReader {
     let key = CONST.MSG.FIELD.FULL_NAME_MAPPING[`${fieldClass}${fieldType}`]
       || CONST.MSG.FIELD.NAME_MAPPING[fieldClass];
     
-    if (!key && this.parserConfig?.includePropertyByHex) {
+    if (!key && this.parserConfig?.includePropertyByHex?.has(fieldClass)) {
       const propertyName = this.parserConfig.includePropertyByHex.get(fieldClass);
       if (propertyName) {
         key = propertyName
@@ -1547,7 +1547,7 @@ export default class MsgReader {
       }
     }
     //Set custom raw props
-    if (parserConfig?.includePropertyByName.has(key)) {
+    if (parserConfig?.includePropertyByName?.has(key)) {
       const propertyName = parserConfig.includePropertyByName.get(key)
       fields[propertyName] = value
     }

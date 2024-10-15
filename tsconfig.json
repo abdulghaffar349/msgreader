@@ -1,12 +1,15 @@
 {
     "compilerOptions": {
-        "target": "ES5",
+        "target": "ES6",
         "module": "CommonJS",
         "declaration": true,
         "outDir": "lib",
         "allowSyntheticDefaultImports": true,
         "esModuleInterop": true,
         "moduleResolution": "Node",
+        "types": [
+            "node"
+        ],
         "typeRoots": [
             "node_modules/@types"
         ]

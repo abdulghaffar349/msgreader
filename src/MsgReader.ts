@@ -67,12 +67,25 @@ export interface ParserConfig {
    * 
    */
   ansiEncoding?: string;
+  /**
+   * Match the key by it address or hex value and then set it with its name in fields
+   * Suppose if we pass the hex 370d it will set the attachLongPathname in the attachment
+   */
+  includePropertyByHex?: Map<string, string>; //'370d': 'attachLongPathname'
+  /**
+   * Check the property key with name find from the MSG and set it with user defined name in the field
+   * Suppose if we find key named IOpenTypedFacet.SkypeSpaces_ConversationPost_Extension it can be set as mainTagContent
+   * in fields
+   */
+  includePropertyByName?: Map<string, string>; //IOpenTypedFacet.SkypeSpaces_ConversationPost_Extension => mainTagContent
 }
 
 interface ParsingConfig {
   propertyObserver: (fields: FieldsData, tag: number, raw: Uint8Array | null) => void;
   includeRawProps: boolean;
   ansiEncoding?: string;
+  includePropertyByHex?: Map<string, string>; //'370d': 'attachLongPathname'
+  includePropertyByName?: Map<string, string>; //IOpenTypedFacet.SkypeSpaces_ConversationPost_Extension => mainTagContent
 }
 
 /**
@@ -1149,7 +1162,8 @@ export interface SomeParsedOxProps {
 
 export interface FieldsData extends SomeOxProps, SomeParsedOxProps {
   dataType: null | "msg" | "attachment" | "recipient";
-
+  messageId?: any;
+  bodyPreview?: string;
   /**
    * The attachment file's contentLength.
    * 
@@ -1228,6 +1242,10 @@ export interface FieldsData extends SomeOxProps, SomeParsedOxProps {
    */
   recipients?: FieldsData[];
 
+  /**
+   * Shows the rowId or index of the recipient in the recipients table
+   */
+  rowId?: number
   /**
    * error is set on parse error.
    * 
@@ -1381,6 +1399,13 @@ export default class MsgReader {
 
     let key = CONST.MSG.FIELD.FULL_NAME_MAPPING[`${fieldClass}${fieldType}`]
       || CONST.MSG.FIELD.NAME_MAPPING[fieldClass];
+    
+    if (!key && this.parserConfig?.includePropertyByHex?.has(fieldClass)) {
+      const propertyName = this.parserConfig.includePropertyByHex.get(fieldClass);
+      if (propertyName) {
+        key = propertyName
+      }
+    }
     let keyType = KeyType.root;
 
     let propertySet: string = undefined;
@@ -1524,7 +1549,19 @@ export default class MsgReader {
   }
 
   private setDecodedFieldTo(parserConfig: ParsingConfig, fields: FieldsData, pair: FieldValuePair): void {
-    const { key, keyType, value } = pair;
+    let { key, keyType, value } = pair;
+    if (typeof value === 'string') {
+      const lastCharOfString = value.charAt(value.length - 1);
+      if (lastCharOfString === '\u0000') { // Somehow we are getting \u0000 that is null at the end of strings
+        value = value.slice(0, -1);
+      }
+    }
+    //Set custom raw props
+    if (parserConfig?.includePropertyByName?.has(key)) {
+      const propertyName = parserConfig.includePropertyByName.get(key)
+      fields[propertyName] = value
+    }
+  
     if (key !== undefined) {
       if (keyType === KeyType.root) {
         fields[key] = value;
@@ -1784,7 +1821,7 @@ export default class MsgReader {
     const fields: FieldsData = {
       dataType: "msg",
       attachments: [],
-      recipients: []
+      recipients: []    
     };
     this.fieldsDataDir(parserConfig, this.reader.rootFolder(), this.reader.rootFolder(), fields, "root");
     return fields;
@@ -1813,6 +1850,8 @@ export default class MsgReader {
           propertyObserver: (this.parserConfig?.propertyObserver) || (() => { }),
           includeRawProps: this.parserConfig?.includeRawProps ? true : false,
           ansiEncoding: emptyToNull(this.parserConfig?.ansiEncoding),
+          includePropertyByName: (this.parserConfig?.includePropertyByName) || undefined,
+          includePropertyByHex: (this.parserConfig?.includePropertyByHex) || undefined
         }
       );
     }
